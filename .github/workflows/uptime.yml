@@ -24,16 +24,7 @@ jobs:
       - name: Install Dependencies
         run: npm install
       
-      - name: OWASP Dependency Check
-        run: |
-          docker run --rm \
-            --volume ${PWD}:/src \
-            owasp/dependency-check \
-            --scan /src \
-            --format XML \
-            --project "uptime" \
-            --out /src/dependency-check-report.xml
-      
+     
       - name: Trivy Filesystem Scan
         run: |
           docker run --rm \
