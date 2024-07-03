@@ -11,7 +11,7 @@ jobs:
     
     env:
       SCANNER_HOME: ${{ github.workspace }}/sonar-scanner
-      
+
     steps:
       - name: Checkout from Git
         uses: actions/checkout@v2
@@ -19,14 +19,10 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '21'  # Update with your Node.js version
+          node-version: '14'  # Update with your Node.js version
       
       - name: Install Dependencies
         run: npm install
-      
-    
-      
-     
       
       - name: OWASP Dependency Check
         run: |
@@ -64,8 +60,8 @@ jobs:
       
       - name: Remove Docker Container
         run: |
-          docker stop uptime || true
-          docker rm uptime || true
+          docker stop chatbot || true
+          docker rm chatbot || true
       
       - name: Deploy to Container
         run: |
