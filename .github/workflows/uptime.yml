@@ -1,0 +1,74 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    env:
+      SCANNER_HOME: ${{ github.workspace }}/sonar-scanner
+      
+    steps:
+      - name: Checkout from Git
+        uses: actions/checkout@v2
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '21'  # Update with your Node.js version
+      
+      - name: Install Dependencies
+        run: npm install
+      
+    
+      
+     
+      
+      - name: OWASP Dependency Check
+        run: |
+          docker run --rm \
+            --volume ${PWD}:/src \
+            owasp/dependency-check \
+            --scan /src \
+            --format XML \
+            --project "uptime" \
+            --out /src/dependency-check-report.xml
+      
+      - name: Trivy Filesystem Scan
+        run: |
+          docker run --rm \
+            --volume ${PWD}:/workdir \
+            aquasec/trivy \
+            fs -o /workdir/trivyfs.json /workdir
+      
+      - name: Docker Build and Push
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: |
+          docker build -t uptime .
+          docker tag uptime iscanprint/uptime:2.1
+          docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+          docker push iscanprint/uptime:2.1
+      
+      - name: Trivy Image Scan
+        run: |
+          docker run --rm \
+            --volume /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy \
+            image iscanprint/uptime:2.1 -o trivy.json
+      
+      - name: Remove Docker Container
+        run: |
+          docker stop uptime || true
+          docker rm uptime || true
+      
+      - name: Deploy to Container
+        run: |
+          docker run -d --name chatbot \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -p 3001:3001 iscanprint/uptime:2.1
