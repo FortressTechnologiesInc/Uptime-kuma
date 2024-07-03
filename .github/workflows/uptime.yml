@@ -23,11 +23,12 @@ jobs:
       
       - name: Install Dependencies
         run: npm install
+      
       - name: OWASP Dependency Check
         run: |
           docker run --rm \
             --volume ${PWD}:/src \
-            owasp/dependency-check \
+            owasp/dependency-check:9.2.0 \
             --scan /src \
             --format XML \
             --project "uptime" \
